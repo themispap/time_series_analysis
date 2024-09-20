@@ -1,0 +1,248 @@
+---
+title: "Technical Olympic S.A. Stock Price Time Series Analysis"
+author: "Your Name"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output: html_document
+---
+
+## Introduction
+
+This document presents a comprehensive time series analysis of Technical Olympic S.A. stock prices. The analysis includes:
+
+- Time series decomposition
+- Polynomial fitting for trend analysis
+- Stationarity tests
+- ARIMA modeling
+- Forecasting future stock prices
+
+We will begin by loading the necessary libraries and the dataset.
+
+```{r setup, include=FALSE}
+# Loading required libraries
+library(knitr)
+library(stats)
+library(MARSS)
+library(forecast)
+library(datasets)
+library(tseries)
+```
+
+## Data Loading and Preprocessing
+
+The dataset is loaded from a CSV file, and the date column is properly formatted.
+
+```{r load-data}
+# Load the data
+data <- read.csv('data.csv')
+data$date <- as.Date(data$date, format = "%d/%m/%y")
+data <- data.frame('date' = data$date, 'value' = data$value)
+head(data)
+```
+
+Next, we calculate the range of stock prices to be used later for plotting purposes.
+
+```{r calc-range}
+# Calculate the range of stock prices
+r <- range(data$value)[2] - range(data$value)[1]
+```
+
+## Time Series Creation
+
+We convert the stock values into a time series object with a frequency of 25 (representing approximately 25 trading days in a month) and visualize the time series.
+
+```{r time-series}
+# Create time series object
+f <- 25  # Frequency
+a <- 1   # Start of time series
+value_ts <- ts(data$value, frequency = f, start = a)
+
+# Plot the raw time series
+plot.ts(value_ts, main="Time series plot", ylab='value', col='#69b3a2', bty='n')
+```
+
+## Time Series Decomposition
+
+Now, we decompose the time series into trend, seasonality, and residual components. We also apply a Box-Cox transformation to stabilize the variance, and decompose the transformed series.
+
+```{r decomposition}
+# Decompose the original time series
+par(mfrow=c(1,2))  # Set up for two plots side-by-side
+value_dec <- decompose(value_ts)
+plot(value_dec, yax.flip = TRUE, col='#69b3a2', bty='n')
+
+# Apply Box-Cox transformation to stabilize variance
+lambda <- BoxCox.lambda(value_ts)
+log_ts <- BoxCox(value_ts, lambda)
+
+# Decompose the transformed time series
+value_dec_log <- decompose(log_ts)
+plot(value_dec_log, yax.flip = TRUE, col='#69b3a2', bty='n')
+```
+
+## Polynomial Fitting
+
+We fit polynomial models of different degrees to identify the best polynomial model for the data. We'll examine the Adjusted R-squared, AIC, and BIC values for each model.
+
+```{r poly-fitting}
+# Polynomial fitting for degrees 1 to 4
+n <- 4  # Maximum degree of polynomial
+t <- 1:length(value_ts)
+
+par(mfrow=c(2,2))  # Set up for 2x2 grid of plots
+
+for (i in 1:n) {
+  # Fit polynomial model
+  fit_poln <- lm(value_ts ~ poly(t, i))
+  
+  # Print performance metrics
+  print(paste('Degree of polynomial: ', i))
+  print(paste('Adjusted R squared: ', summary(fit_poln)$adj.r.squared))
+  print(paste('AIC: ', AIC(fit_poln)))
+  print(paste('BIC: ', BIC(fit_poln)))
+  
+  # Plot observed vs fitted values
+  plot(value_ts, ylab='value', col='#69b3a2', bty='n')
+  lines(ts(fit_poln$fitted.values, frequency = f, start = a), col='red')
+}
+```
+
+Based on the analysis, we choose the polynomial model with degree 3 and analyze the residuals.
+
+```{r poly-residuals}
+# Fit degree 3 polynomial model
+fit_poln <- lm(value_ts ~ poly(t, 3))
+
+# Calculate residuals
+value_pol <- ts(value_ts - fit_poln$fitted.values, frequency = f, start = a)
+
+# Plot the residuals
+plot.ts(value_pol, col='orange', main='Residuals', ylab='res', bty='n', ylim=c(-r/2, r/2))
+```
+
+## Stationarity Tests
+
+To ensure stationarity, we perform both the Augmented Dickey-Fuller (ADF) and KPSS tests on the time series.
+
+```{r stationarity-tests}
+# Perform ADF test for stationarity
+adf_result <- adf.test(value_ts)
+print(adf_result)
+
+# Perform KPSS test for stationarity
+kpss_result <- kpss.test(value_ts)
+print(kpss_result)
+```
+
+## Differencing the Series
+
+To remove trend and seasonality, we apply differencing to the series.
+
+```{r differencing}
+# Differencing to eliminate trend and seasonality
+l <- 1  # Lag
+d <- ndiffs(value_ts, test = "adf")  # Determine number of differences
+
+# Apply differencing
+value_dif <- diff(value_ts, lag = l, differences = d)
+
+# Plot the differenced series
+plot.ts(value_dif, main='Differenced Series', ylab='res', col='orange', ylim=c(-r/2, r/2), bty='n')
+```
+
+## ACF and PACF
+
+We use the ACF and PACF plots to determine the AR and MA terms for the ARIMA model.
+
+```{r acf-pacf}
+# Plot ACF and PACF to identify ARIMA parameters
+par(mfrow=c(1,2))
+acf(value_ts, main = 'ACF', col='orange', bty='n')
+pacf(value_ts, main = 'PACF', col='orange', bty='n')
+```
+
+## ARIMA Modeling
+
+Based on the ACF/PACF plots, we fit AR, MA, and ARIMA models and plot the fitted values and residuals for each.
+
+### AR(1) Model
+```{r ar-model}
+# Fit AR(1) model
+fit_ar <- arima(value_ts, order = c(1, 0, 0), method = 'CSS')
+value_ar <- fitted(fit_ar)
+
+# Plot fitted AR(1) values
+par(mfrow=c(1,2))
+plot.ts(value_ts, ylab='value', main='AR(1) Model', col='#69b3a2', bty='n')
+lines(value_ar, col='red')
+legend('bottomright', legend=c('Observed', 'Fitted'), col=c('#69b3a2', 'red'), pch=c('-', '-'), bty='n')
+
+# Plot residuals of AR(1) model
+plot.ts(value_ts - value_ar, col='orange', main='AR(1) Residuals', ylim=c(-r/2, r/2), bty='n')
+```
+
+### MA(11) Model
+```{r ma-model}
+# Fit MA(11) model
+fit_ma <- arima(value_ts, order = c(0, 0, 11), method = 'CSS')
+value_ma <- fitted(fit_ma)
+
+# Plot fitted MA(11) values
+par(mfrow=c(1,2))
+plot.ts(value_ts, ylab='value', main='MA(11) Model', col='#69b3a2', bty='n')
+lines(value_ma, col='red')
+legend('bottomright', legend=c('Observed', 'Fitted'), col=c('#69b3a2', 'red'), pch=c('-', '-'), bty='n')
+
+# Plot residuals of MA(11) model
+plot.ts(value_ts - value_ma, col='orange', main='MA(11) Residuals', ylim=c(-r/2, r/2), bty='n')
+```
+
+### ARIMA(1,1,11) Model
+```{r arima-model}
+# Fit ARIMA(1,1,11) model
+fit_arima <- arima(value_ts, order = c(1, d, 11), method = 'CSS')
+value_arima <- fitted(fit_arima)
+
+# Plot fitted ARIMA values
+par(mfrow=c(1,2))
+plot.ts(value_ts, ylab='value', main='ARIMA(1,1,11) Model', col='#69b3a2', bty='n')
+lines(value_arima, col='red')
+legend('bottomright', legend=c('Observed', 'Fitted'), col=c('#69b3a2', 'red'), pch=c('-', '-'), bty='n')
+
+# Plot residuals of ARIMA model
+plot.ts(value_ts - value_arima, col='orange', main='ARIMA Residuals', ylim=c(-r/2, r/2), bty='n')
+```
+
+## Model Diagnostics
+
+We perform residual diagnostic checks on the ARIMA model to ensure the residuals are uncorrelated.
+
+```{r diagnostics}
+# Perform diagnostic checks on ARIMA residuals
+checkresiduals(fit_arima)
+```
+
+## Forecasting
+
+Finally, we use the ARIMA model to forecast future stock prices and visualize the
+
+ predictions.
+
+```{r forecast}
+# Forecast future stock prices
+frcast <- forecast(fit_arima, h = 7)
+
+# Display the forecasted values
+kable(frcast)
+
+# Plot the forecast
+plot(frcast, main = "Prediction", ylab = 'value', col = '#69b3a2', bty = 'n')
+```
+
+## Accuracy of the Forecast
+
+We evaluate the accuracy of the fitted ARIMA model by comparing the fitted values to the actual stock prices.
+
+```{r accuracy}
+# Assess accuracy of the fitted ARIMA model
+kable(accuracy(frcast$fitted, data$value))
+```
