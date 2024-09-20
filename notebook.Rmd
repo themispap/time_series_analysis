@@ -1,6 +1,6 @@
 ---
 title: "Technical Olympic S.A. Stock Price Time Series Analysis"
-author: "Your Name"
+author: "Themistocles Papavramidis"
 date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 output: html_document
 ---
