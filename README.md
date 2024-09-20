@@ -137,9 +137,10 @@ To run this project on your local machine:
     ```
 2. Open the `code.R` file and run the analysis in R.
 
-[](notebook.html)
 - **Model Comparison**: Evaluate performance across different models.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+[notebook](notebook.html)
