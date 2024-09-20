@@ -127,6 +127,10 @@ Key Results:
 - **ARIMA(1,1,11)** model was selected based on AIC, BIC, and residual diagnostics.
 - Forecasts for the next 7 periods were generated, showing potential future stock prices.
 
+## Project Analysis
+
+You can view the complete analysis in the rendered [HTML document](notebook.html)
+
 ## Usage
 
 To run this project on your local machine:
@@ -142,5 +146,3 @@ To run this project on your local machine:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-[notebook](notebook.html)
