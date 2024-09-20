@@ -137,10 +137,7 @@ To run this project on your local machine:
     ```
 2. Open the `code.R` file and run the analysis in R.
 
-## Future Work
-
-- **Incorporate Exogenous Variables**: Include other stock market indicators or economic factors.
-- **Explore More Models**: Implement advanced time series models like SARIMA or GARCH for better forecasting accuracy.
+[](notebook.html)
 - **Model Comparison**: Evaluate performance across different models.
 
 ## License
