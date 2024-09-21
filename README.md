@@ -25,25 +25,26 @@ The objective is to gain insights into stock price movements and forecast future
   - [5. ARIMA Modeling](#5-arima-modeling)
   - [6. Forecasting](#6-forecasting)
 - [Results](#results)
+- [Project Analysis](#Project-Analysis)
 - [Usage](#usage)
-- [Future Work](#future-work)
 - [License](#license)
 
 ## Project Structure
 
 The repository contains the following:
 
-- `data/`: Directory for the historical stock data.
+- `data.csv`: Directory for the historical stock data.
 - `code.R`: Main R script for analysis and forecasting.
-- `README.md`: This file, providing an overview of the project.
-- `plots/`: Directory to store generated plots and visualizations.
+- `notebook.Rmd`: Combined code and output in an RMarkdown notebook
+- `README.md`: Overview of the project.
+<!-- - `plots/`: Directory to store generated plots and visualizations. -->
 - `forecast_results.csv`: File containing the predicted values.
 
 ## Data
 
 The dataset used in this project represents the historical stock closing prices of **Technical Olympic S.A.**, including the corresponding dates.
 
-- **Source**: [Data.csv](data/data.csv)
+- **Source**: [data.csv](data/data.csv)
 - **Columns**: 
   - `date`: Date of the stock price record.
   - `value`: Closing stock price on the given date.
@@ -136,8 +137,8 @@ You can view the complete analysis in the rendered [HTML document](notebook.html
 To run this project on your local machine:
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/stock-forecasting.git
-    cd stock-forecasting
+    git clone https://github.com/yourusername/time_series_analysis.git
+    cd time_series_analysis
     ```
 2. Open the `code.R` file and run the analysis in R.
 
