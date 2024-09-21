@@ -1,5 +1,7 @@
 # Technical Olympic S.A. Stock Price Forecasting Project
 
+![](bground.png)
+
 ## Overview
 
 This project focuses on a comprehensive time series analysis and forecasting of the closing stock prices of **Technical Olympic S.A.** Using historical data, the analysis involves:
